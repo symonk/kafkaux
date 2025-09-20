@@ -18,6 +18,16 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "mypy>=1.18.2",
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
 ]
+
+[tool.ruff.lint]
+extend-select = ["B", "I"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+
+[tool.mypy]
+ignore_missing_imports = true
