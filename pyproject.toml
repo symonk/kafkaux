@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "confluent-kafka>=2.11.1",
+    "pydantic>=2.11.9",
     "typer>=0.19.1",
 ]
 
@@ -21,6 +22,7 @@ dev = [
     "mypy>=1.18.2",
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
+    "pytest-xdist>=3.8.0",
     "testcontainers[kafka]>=4.13.0",
 ]
 
