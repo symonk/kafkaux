@@ -36,7 +36,7 @@ def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configu
     but the file does not exist on disk etc, rather than fall back to other lookups
     which can be surprising to the user.
     """
-    path_to_check = DEFAULT_CFG_ENV_VAR
+    path_to_check = DEFAULT_CONFIG_DIR
     if env_path := os.environ.get(DEFAULT_CFG_ENV_VAR) is not None:
         path_to_check = env_path
     if user_defined_path:

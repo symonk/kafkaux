@@ -4,6 +4,7 @@ import typer
 
 from kafkaux.config.parser import Configuration
 from kafkaux.config.parser import load_configuration
+from kafkaux.util import enforce_config
 
 app = typer.Typer()  # Todo: Update args
 
@@ -11,19 +12,25 @@ app = typer.Typer()  # Todo: Update args
 @app.command()
 def produce(ctx: typer.Context):
     """subcommand for producing workflows"""
+    cfg: Configuration = ctx.obj.get("config")
     typer.echo(f"producing -> cfg: {ctx.obj.get('config')}")
+    enforce_config(cfg)
 
 
 @app.command()
 def consume(ctx: typer.Context):
     """subcommand for consuming workflows"""
+    cfg: Configuration = ctx.obj.get("config")
     typer.echo(f"consuming -> cfg: {ctx.obj.get('config')}")
+    enforce_config(cfg)
 
 
 @app.command()
 def meta(ctx: typer.Context):
     """subcommand for managing the cluster and querying metadata"""
+    cfg: Configuration = ctx.obj.get("config")
     typer.echo(f"querying -> cfg: {ctx.obj.get('config')}")
+    enforce_config(cfg)
 
 
 @app.callback(add_help_option=True)
