@@ -10,7 +10,7 @@ def enforce_config(cfg: Configuration) -> None:
     if cfg.librdkafka is None:
         typer.echo("parsed config must contain a [librdkafka] section", err=True)
         raise typer.Exit(code=2)
-    must_have = ("bootstrap.servers", "metadata.broker.list")
+    must_have = {"bootstrap.servers", "metadata.broker.list"}
     if not any(key in cfg.librdkafka for key in must_have):
         typer.echo(
             f"missing required keys in [librdkafka] section, should contain one of: {must_have}",
