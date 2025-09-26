@@ -56,3 +56,8 @@ hello=world
     f = tmp_path / "kafkaux.ini"
     f.write_text(contents)
     return f
+
+
+# allows injecting two tmp files into a test while keeping duplication
+# of the code low.
+fx_simple_config_path_other = fx_simple_config_path

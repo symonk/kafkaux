@@ -22,7 +22,7 @@ class Configuration:
     librdkafka: dict[str, typing.Any]
 
 
-def load_configuration(user_defined_path: pathlib.Path | None) -> Configuration:
+def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configuration:
     """load_configuration attempts to parse and load the configuration
     file, typically provided to the `--config` CLI option.
 
@@ -36,11 +36,11 @@ def load_configuration(user_defined_path: pathlib.Path | None) -> Configuration:
     but the file does not exist on disk etc, rather than fall back to other lookups
     which can be surprising to the user.
     """
-    path_to_check = (
-        user_defined_path
-        if user_defined_path is not None
-        else os.environ.get(DEFAULT_CFG_ENV_VAR) or DEFAULT_CONFIG_DIR
-    )
+    path_to_check = DEFAULT_CFG_ENV_VAR
+    if env_path := os.environ.get(DEFAULT_CFG_ENV_VAR) is not None:
+        path_to_check = env_path
+    if user_defined_path:
+        path_to_check = user_defined_path
     parser = configparser.ConfigParser()
     parser.read(path_to_check)
     return parse(parser)
