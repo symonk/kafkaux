@@ -18,10 +18,15 @@ def produce(ctx: typer.Context):
 
 
 @app.command()
-def consume(ctx: typer.Context):
+def consume(ctx: typer.Context,
+            topic: str = typer.Argument(..., help="Kafka topic to consume from"),
+            partitions: tuple[int] | None = typer.Option(None, help="Optional subset of partitions to consume from"),
+            tail: bool = typer.Option(False, "--tail", "-t", help="Consume only new messages, started at `latest`"),
+            filter_strategy: str | None = typer.Option(None, "--filter", "-f", help="Filter messages based on complex strategies"),
+            output: pathlib.Path | None = typer.Option(None, "--output", "-o", help="Write filtered messages to a file")):
     """subcommand for consuming workflows"""
     cfg: Configuration = ctx.obj.get("config")
-    typer.echo(f"consuming -> cfg: {ctx.obj.get('config')}")
+    typer.echo(f"consuming -> cfg: {ctx.obj.get('config')}, locals: {locals()}")
     enforce_config(cfg)
 
 
