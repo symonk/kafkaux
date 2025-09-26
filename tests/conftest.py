@@ -1,3 +1,4 @@
+import pathlib
 import subprocess
 import typing
 
@@ -36,10 +37,22 @@ def ensure_docker() -> None:
 @pytest.fixture
 def fx_kafka(
     ensure_docker: None, request: pytest.FixtureRequest
-) -> typing.Generator[None, KafkaService, None]:
+) -> typing.Generator[KafkaService, None, None]:
     """fx_kafka yields a new `kafkaux.KafkaService` that is wired into a function scoped
     isolated kafka instance."""
     with KafkaContainer(image=KAFKA_IMAGE).with_kraft() as kafka:
         admin_client = AdminClient({"bootstrap.servers": kafka.get_bootstrap_server()})
         with KafkaService(admin_client=admin_client) as service:
             yield service
+
+
+@pytest.fixture()
+def fx_simple_config_path(tmp_path) -> pathlib.Path:
+    contents = r"""
+[librdkafka]
+foo=bar
+hello=world
+"""
+    f = tmp_path / "kafkaux.ini"
+    f.write_text(contents)
+    return f
