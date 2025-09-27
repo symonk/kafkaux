@@ -4,13 +4,15 @@ import pathlib
 import typing
 from dataclasses import dataclass
 
+import typer
+
 # The default (os agnostic) path (~/.config/kafkaux.ini on POSIX)
-DEFAULT_CONFIG_DIR = pathlib.Path.home() / ".config" / "kafkaux.ini"
+DEFAULT_CONFIG_DIR: str = str(pathlib.Path.home() / ".config" / "kafkaux.ini")
 
 # Env variable that can be set to specify config if --config is not set.
 # this should be set to the full qualifying path name to the .ini file
 # that contains the configuration.
-DEFAULT_CFG_ENV_VAR = "KAFKAUX_CONFIG"
+DEFAULT_CFG_ENV_VAR: str = "KAFKAUX_CONFIG"
 
 
 @dataclass(frozen=True)
@@ -42,14 +44,17 @@ def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configu
     if user_defined_path:
         path_to_check = user_defined_path
     parser = configparser.ConfigParser()
-    parser.read(path_to_check)
+    with open(path_to_check) as f:
+        parser.read_file(f)
     return parse(parser)
 
 
 def parse(cfg: configparser.ConfigParser) -> Configuration:
     """parse takes a loaded ini config and transforms
     it into the configuration dataclass."""
-    return Configuration(librdkafka=get_cfg_section(cfg, "librdkafka"))
+    cfg = Configuration(librdkafka=get_cfg_section(cfg, "librdkafka"))
+    enforce_config(cfg)
+    return cfg
 
 
 def get_cfg_section(
@@ -64,3 +69,19 @@ def get_cfg_section(
     if cfg.has_section(section):
         return dict(cfg[section])
     return {}
+
+
+def enforce_config(cfg: Configuration) -> None:
+    """enforce_config ensures that the parsed config is fit for purpose
+    and contains the bare minimum requirements to interact with a
+    kafka cluster."""
+    if cfg.librdkafka is None:
+        typer.echo("parsed config must contain a [librdkafka] section", err=True)
+        raise typer.Exit(code=2)
+    must_have = {"bootstrap.servers", "metadata.broker.list"}
+    if not any(key in cfg.librdkafka for key in must_have):
+        typer.echo(
+            f"missing required keys in [librdkafka] section, should contain one of: {must_have}",
+            err=True,
+        )
+        raise typer.Exit(code=2)

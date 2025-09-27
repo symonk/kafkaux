@@ -1,3 +1,3 @@
-from .parser import Configuration
+from .config import Configuration
 
 __all__ = ("Configuration",)
