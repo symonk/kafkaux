@@ -3,6 +3,8 @@ from __future__ import annotations
 import types
 import typing
 
+from confluent_kafka import Consumer
+from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
 
 from .model import TopicsResponse
@@ -11,6 +13,7 @@ from .model import TopicsResponse
 class KafkaProtocol(typing.Protocol):
     def list_topics(self) -> list[str]: ...
     def verify(self) -> bool: ...
+    def tail(self, topic: str, partitions: tuple[int]) -> None: ...
 
 
 class KafkaService:
@@ -23,8 +26,15 @@ class KafkaService:
     library later depending on how the project evolves.
     """
 
-    def __init__(self, admin_client: AdminClient) -> None:
+    def __init__(
+        self,
+        admin_client: AdminClient | None = None,
+        consumer: Consumer | None = None,
+        producer: Producer | None = None,
+    ) -> None:
         self.admin_client = admin_client
+        self.consumer = consumer
+        self.producer = producer
 
     def verify(self) -> bool:
         """verify ensures the provided broker is actually reachable with
@@ -38,6 +48,14 @@ class KafkaService:
         cluster."""
         self.admin_client.create_topics("foo", "bar", "baz")
         return list(self.admin_client.list_topics().keys())
+
+    def tail(self, topic: str, partitions: tuple[int] = ()) -> None:
+        """tail performs a live following of a particular topic for the
+        given offset.  if no offsets are provided, all partitions are
+        monitored.  This spawns a single consumer which will be assigned
+        all partitions of a topic and filter from there.
+        """
+        messages = self.consumer.consume(num_messages=1)
 
     def __enter__(self) -> KafkaService:
         return self
