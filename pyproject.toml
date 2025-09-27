@@ -19,7 +19,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "coverage>=7.10.7",
     "mypy>=1.18.2",
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
@@ -41,3 +40,6 @@ ignore_missing_imports = true
 filterwarnings = [
     "ignore::DeprecationWarning:testcontainers"
 ]
+
+[scripts]
+cover = "pytest --cov=src/kafkaux --cov-report=term-missing"
