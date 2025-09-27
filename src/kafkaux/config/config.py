@@ -39,7 +39,7 @@ def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configu
     which can be surprising to the user.
     """
     path_to_check = DEFAULT_CONFIG_DIR
-    if env_path := os.environ.get(DEFAULT_CFG_ENV_VAR) is not None:
+    if (env_path := os.environ.get(DEFAULT_CFG_ENV_VAR)) is not None:
         path_to_check = env_path
     if user_defined_path:
         path_to_check = user_defined_path
