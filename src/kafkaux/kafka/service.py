@@ -1,13 +1,12 @@
 from __future__ import annotations
-import time
 
 import types
 import typing
+from pprint import pprint
 
 from confluent_kafka import Consumer
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
-from pprint import pprint
 
 from .model import TopicsResponse
 
