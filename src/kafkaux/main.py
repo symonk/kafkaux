@@ -14,8 +14,7 @@ app = typer.Typer()  # Todo: Update args
 @app.command()
 def produce(ctx: typer.Context):
     """subcommand for producing workflows"""
-    cfg: Configuration = ctx.obj.get("config")
-    typer.echo(f"producing -> cfg: {ctx.obj.get('config')}")
+    ...
 
 
 @app.command()
@@ -45,19 +44,19 @@ def consume(
     consumer, likewise for a producer and admin client.
     """
     cfg: Configuration = ctx.obj.get("config")
-    typer.echo(f"consuming -> cfg: {ctx.obj.get('config')}, locals: {locals()}")
     ctx.obj["config"] = cfg
     group_id = f"kafkaux-{uuid.uuid4()}"
     consumer_overrides = {}
     if tail:
         consumer_overrides = {
-            "auto.offset.reset": "latest",  # do not play the offsets from the beginning of the stream
+            "auto.offset.reset": "earliest",  # do not play the offsets from the beginning of the stream (TODO: Revert to latest, testing for now)
             "group.id": group_id,  # identify the consumer uniquely per run
             "enable.auto.commit": False,  # do not commit offsets for the group to avoid potential side effects
-            "log_level": 1,  # only fatal/alert logging
+            "log_level": 5,  # only fatal/alert logging
         }
     cfg.librdkafka.update(**consumer_overrides)
     consumer = confluent_kafka.Consumer(cfg.librdkafka)
+    consumer.subscribe([topic])
     with KafkaService(consumer=consumer) as kafka_service:
         if tail:
             kafka_service.tail(topic=topic, partitions=partitions)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 
 import types
 import typing
@@ -6,6 +7,7 @@ import typing
 from confluent_kafka import Consumer
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
+from pprint import pprint
 
 from .model import TopicsResponse
 
@@ -55,7 +57,15 @@ class KafkaService:
         monitored.  This spawns a single consumer which will be assigned
         all partitions of a topic and filter from there.
         """
-        messages = self.consumer.consume(num_messages=1)
+        while True:
+            msg = self.consumer.poll(1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                print(f"consumer error: {msg.error()}")
+                continue
+            pprint(msg)
+
 
     def __enter__(self) -> KafkaService:
         return self
