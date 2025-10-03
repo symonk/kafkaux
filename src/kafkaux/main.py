@@ -33,6 +33,9 @@ def consume(
     output: pathlib.Path | None = typer.Option(
         None, "--output", "-o", help="Write filtered messages to a file"
     ),
+    only_content: bool = typer.Option(
+        False, "--only-content", help="Only display the literal message value"
+    ),
 ):
     """subcommand for consuming workflows
 
@@ -47,19 +50,25 @@ def consume(
     ctx.obj["config"] = cfg
     group_id = f"kafkaux-{uuid.uuid4()}"
     consumer_overrides = {}
+
+    def fatal_cb(err):
+        # TODO: Exit on errors for now instantly, fatal or not.
+        raise typer.Exit(code=2)
+
     if tail:
         consumer_overrides = {
             "auto.offset.reset": "earliest",  # do not play the offsets from the beginning of the stream (TODO: Revert to latest, testing for now)
             "group.id": group_id,  # identify the consumer uniquely per run
             "enable.auto.commit": False,  # do not commit offsets for the group to avoid potential side effects
             "log_level": 5,  # only fatal/alert logging
+            "error_cb": fatal_cb,
         }
     cfg.librdkafka.update(**consumer_overrides)
     consumer = confluent_kafka.Consumer(cfg.librdkafka)
     consumer.subscribe([topic])
     with KafkaService(consumer=consumer) as kafka_service:
         if tail:
-            kafka_service.tail(topic=topic, partitions=partitions)
+            kafka_service.tail()
 
 
 @app.command()

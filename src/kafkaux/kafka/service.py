@@ -14,7 +14,7 @@ from .model import TopicsResponse
 class KafkaProtocol(typing.Protocol):
     def list_topics(self) -> list[str]: ...
     def verify(self) -> bool: ...
-    def tail(self, topic: str, partitions: tuple[int]) -> None: ...
+    def tail(self) -> None: ...
 
 
 class KafkaService:
@@ -50,11 +50,10 @@ class KafkaService:
         self.admin_client.create_topics("foo", "bar", "baz")
         return list(self.admin_client.list_topics().keys())
 
-    def tail(self, topic: str, partitions: tuple[int] = ()) -> None:
-        """tail performs a live following of a particular topic for the
-        given offset.  if no offsets are provided, all partitions are
-        monitored.  This spawns a single consumer which will be assigned
-        all partitions of a topic and filter from there.
+    def tail(self) -> None:
+        """tail follows all messages for the given partitions.  The configuration
+        for the consumer group that tail uses is configured outside this method in
+        the CLI handler.
         """
         while True:
             msg = self.consumer.poll(1.0)
@@ -63,8 +62,14 @@ class KafkaService:
             if msg.error():
                 print(f"consumer error: {msg.error()}")
                 continue
-            pprint(msg)
-
+            message_object = {
+                "topic": msg.topic(),
+                "partition": msg.partition(),
+                "offset": msg.offset(),
+                "key": msg.key().decode("utf-8"),
+                "payload": msg.value().decode("utf-8"),
+            }
+            pprint(message_object)
 
     def __enter__(self) -> KafkaService:
         return self

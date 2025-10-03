@@ -18,8 +18,8 @@ DEFAULT_CFG_ENV_VAR: str = "KAFKAUX_CONFIG"
 @dataclass(frozen=True)
 class Configuration:
     """Configuration encapsulates the runtime configuration of an execution of
-    kafkaaux.  Kafkaux allows passing any arbitrary `librdkafka` key:value pairs
-    aswell as key value pairs for custom kafkaux behaviour."""
+    kafkaux.  Kafkaux allows passing any arbitrary `librdkafka` key:value pairs
+    as well as key value pairs for custom kafkaux behaviour."""
 
     librdkafka: dict[str, typing.Any]
 
