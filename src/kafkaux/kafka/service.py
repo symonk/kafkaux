@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import types
 import typing
-from pprint import pprint
 
 from confluent_kafka import Consumer
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient
 
+from kafkaux.kafka.model import ReportableMessage
+
+from .filter import FILTER_REGISTRY
 from .model import TopicsResponse
 
 
 class KafkaProtocol(typing.Protocol):
     def list_topics(self) -> list[str]: ...
     def verify(self) -> bool: ...
-    def tail(self) -> None: ...
+    def tail(self, filters: tuple[str, ...]) -> None: ...
 
 
 class KafkaService:
@@ -50,7 +52,7 @@ class KafkaService:
         self.admin_client.create_topics("foo", "bar", "baz")
         return list(self.admin_client.list_topics().keys())
 
-    def tail(self) -> None:
+    def tail(self, filters: tuple[str, ...]) -> None:
         """tail follows all messages for the given partitions.  The configuration
         for the consumer group that tail uses is configured outside this method in
         the CLI handler.
@@ -62,14 +64,13 @@ class KafkaService:
             if msg.error():
                 print(f"consumer error: {msg.error()}")
                 continue
-            message_object = {
-                "topic": msg.topic(),
-                "partition": msg.partition(),
-                "offset": msg.offset(),
-                "key": msg.key().decode("utf-8"),
-                "payload": msg.value().decode("utf-8"),
-            }
-            pprint(message_object)
+            reportable_message = ReportableMessage.from_confluent_message(msg)
+            if filters:
+                for f in filters:
+                    if FILTER_REGISTRY[f](reportable_message):
+                        print(reportable_message.model_dump_json(), flush=True)
+                        continue
+            print(reportable_message.model_dump_json(), flush=True)
 
     def __enter__(self) -> KafkaService:
         return self

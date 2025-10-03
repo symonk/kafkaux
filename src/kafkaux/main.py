@@ -36,6 +36,9 @@ def consume(
     only_content: bool = typer.Option(
         False, "--only-content", help="Only display the literal message value"
     ),
+    filters: list[str] = typer.Argument(
+        default=(), help="Arbitrary filters to apply to messages"
+    ),
 ):
     """subcommand for consuming workflows
 
@@ -68,7 +71,7 @@ def consume(
     consumer.subscribe([topic])
     with KafkaService(consumer=consumer) as kafka_service:
         if tail:
-            kafka_service.tail()
+            kafka_service.tail(filters)
 
 
 @app.command()
