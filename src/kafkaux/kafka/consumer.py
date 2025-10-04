@@ -16,11 +16,14 @@ class ConsumerMode(StrEnum):
 
 class KafkauxConsumer:
     """KafkauxConsumer encapsulates all consuming style activities."""
-    def __init__(self,
-                 kconfig: Configuration,
-                 mode: ConsumerMode,
-                 topics: list[str],
-                 filters: dict[str, str] | None = None,) -> None:
+
+    def __init__(
+        self,
+        kconfig: Configuration,
+        mode: ConsumerMode,
+        topics: list[str],
+        filters: dict[str, str] | None = None,
+    ) -> None:
         self.kconfig = kconfig
         self.topics = topics
         self.filters = filters
@@ -43,6 +46,10 @@ class KafkauxConsumer:
             "enable.auto.commit": False,
         }
 
+    def start(self) -> None:
+        match self.mode:
+            case ConsumerMode.TAIL:
+                self.tail()
 
     def tail(self) -> None:
         """tail monitors messages for the particular topics specified
@@ -63,5 +70,3 @@ class KafkauxConsumer:
                         print(reportable_message.model_dump_json(), flush=True)
                         continue
             print(reportable_message.model_dump_json(), flush=True)
-
-

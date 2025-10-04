@@ -4,8 +4,9 @@ import typing
 
 import pytest
 from confluent_kafka.admin import AdminClient
-from kafkaux.kafka.service import KafkaService
 from testcontainers.kafka import KafkaContainer
+
+from kafkaux.kafka.service import KafkaService
 
 # Avoid a bump to testcontainers itself causing the version of
 # kafka to change for tests, this should be explicitly controlled.
@@ -72,6 +73,7 @@ def fx_valid_cfg_metaservers(tmp_path) -> pathlib.Path:
     f = tmp_path / "kafkaux.ini"
     f.write_text(VALID_BASIC_CONTENTS_META)
     return f
+
 
 # allows injecting two tmp files into a test while keeping duplication
 # of the code low.

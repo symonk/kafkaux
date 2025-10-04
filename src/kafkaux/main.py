@@ -11,6 +11,7 @@ app = typer.Typer()  # Todo: Update args
 
 # TODO: Come up with a solution for signal handling.
 
+
 @app.command()
 def produce(ctx: typer.Context):
     """subcommand for producing workflows"""
@@ -45,8 +46,8 @@ def consume(
         mode=ConsumerMode.TAIL,
         topics=topics,
         filters=None,
-    ) # TODO: Multiple topics
-    c.tail()
+    )  # TODO: Multiple topics
+    c.start()
 
 
 @app.command()
