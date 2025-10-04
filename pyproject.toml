@@ -28,6 +28,7 @@ dev = [
 ]
 
 [tool.ruff.lint]
+ignore = ["B008"]
 extend-select = ["B", "I"]
 
 [tool.ruff.lint.isort]

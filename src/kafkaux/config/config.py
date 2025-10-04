@@ -24,7 +24,9 @@ class Configuration:
     librdkafka: dict[str, typing.Any]
 
 
-def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configuration:
+def load_configuration(
+    user_defined_path: str | None = None,
+) -> Configuration:
     """load_configuration attempts to parse and load the configuration
     file, typically provided to the `--config` CLI option.
 
@@ -52,9 +54,9 @@ def load_configuration(user_defined_path: pathlib.Path | None = None) -> Configu
 def parse(cfg: configparser.ConfigParser) -> Configuration:
     """parse takes a loaded ini config and transforms
     it into the configuration dataclass."""
-    cfg = Configuration(librdkafka=get_cfg_section(cfg, "librdkafka"))
-    enforce_config(cfg)
-    return cfg
+    config = Configuration(librdkafka=get_cfg_section(cfg, "librdkafka"))
+    enforce_config(config)
+    return config
 
 
 def get_cfg_section(

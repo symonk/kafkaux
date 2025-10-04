@@ -1,3 +1,4 @@
+import typing
 import uuid
 from enum import StrEnum
 from enum import unique
@@ -36,7 +37,7 @@ class KafkauxConsumer:
         self.consumer.subscribe(self.topics)
 
     @property
-    def kafka_overrides(self) -> dict[str, str]:
+    def kafka_overrides(self) -> dict[str, typing.Union[str, bool]]:
         """kafka_config calculates the configuration properties
         and overrides based on how the consumer was initialized."""
         consumer_group = f"kafkaux-{uuid.uuid4()}"
@@ -66,7 +67,9 @@ class KafkauxConsumer:
             reportable_message = Event.from_confluent_message(msg)
             if self.filters:
                 for f in self.filters:
-                    if FILTER_REGISTRY[f](reportable_message):
+                    if FILTER_REGISTRY[f](
+                        "", reportable_message
+                    ):  # TODO: Bug but filters is getting rewritten.
                         print(reportable_message.model_dump_json(), flush=True)
                         continue
             print(reportable_message.model_dump_json(), flush=True)

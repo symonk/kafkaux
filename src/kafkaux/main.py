@@ -1,5 +1,3 @@
-import pathlib
-
 import typer
 
 from kafkaux.config.config import Configuration
@@ -41,9 +39,10 @@ def consume(
     """
     cfg: Configuration = ctx.obj.get("config")
     ctx.obj["config"] = cfg
+    mode = ConsumerMode.TAIL  # Bug: Plumb it in
     c = KafkauxConsumer(
         kconfig=cfg,
-        mode=ConsumerMode.TAIL,
+        mode=mode,
         topics=topics,
         filters=None,
     )  # TODO: Multiple topics
@@ -59,7 +58,7 @@ def meta(ctx: typer.Context):
 
 
 @app.callback(add_help_option=True)
-def core(ctx: typer.Context, config: pathlib.Path | None = None):
+def core(ctx: typer.Context, config: str | None = None):
     """
     Custom path to a kafkaux.ini file.  This should be an absolute path.
     By default kafkaux will look for an `KAFKAUX_CONFIG` environment variable

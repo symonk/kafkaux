@@ -15,16 +15,16 @@ def test_default_config_is_loaded(
     cfg = load_configuration()
     assert cfg.librdkafka == {
         "bootstrap.servers": "localhost:9092,localhost:9092",
-        "foo": "bar", 
-        "hello": "world"
-        }
+        "foo": "bar",
+        "hello": "world",
+    }
 
 
 def test_config_override_in_env_var_is_looked_up(
     fx_valid_cfg_bootstrap: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ):
     monkeypatch.setenv(DEFAULT_CFG_ENV_VAR, str(fx_valid_cfg_bootstrap))
-    cfg = load_configuration(fx_valid_cfg_bootstrap)
+    cfg = load_configuration(str(fx_valid_cfg_bootstrap))
     assert cfg.librdkafka == {
         "bootstrap.servers": "localhost:9092,localhost:9092",
         "foo": "bar",
