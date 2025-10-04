@@ -12,7 +12,7 @@ class TopicsResponse:
     kafka for the list of topics available."""
 
 
-class ReportableMessage(BaseModel):
+class Event(BaseModel):
     """ReportableMessage encapsulates a message read from a kafka partition
     including metadata about the particular message.  Kafkaux filters are
     passed an instance of ReportableMessage."""
@@ -25,7 +25,7 @@ class ReportableMessage(BaseModel):
     value: dict[str, str] | None = Field(default_factory=dict)
 
     @classmethod
-    def from_confluent_message(cls, message: Message) -> ReportableMessage:
+    def from_confluent_message(cls, message: Message) -> Event:
         """from_confluent_message constructs a ReportableMessage from
         a kafka message read from a topic."""
         return cls(

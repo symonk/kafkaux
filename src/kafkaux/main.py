@@ -1,15 +1,15 @@
 import pathlib
-import uuid
 
-import confluent_kafka
 import typer
 
 from kafkaux.config.config import Configuration
 from kafkaux.config.config import load_configuration
-from kafkaux.kafka import KafkaService
+from kafkaux.kafka.consumer import ConsumerMode
+from kafkaux.kafka.consumer import KafkauxConsumer
 
 app = typer.Typer()  # Todo: Update args
 
+# TODO: Come up with a solution for signal handling.
 
 @app.command()
 def produce(ctx: typer.Context):
@@ -20,21 +20,9 @@ def produce(ctx: typer.Context):
 @app.command()
 def consume(
     ctx: typer.Context,
-    topic: str = typer.Argument(..., help="Kafka topic to consume from"),
-    partitions: tuple[int] | None = typer.Option(
-        None, help="Optional subset of partitions to consume from"
-    ),
+    topics: list[str] = typer.Option(..., help="List of topics to subscribe to"),
     tail: bool = typer.Option(
         False, "--tail", "-t", help="Consume only new messages, started at `latest`"
-    ),
-    filter_strategy: str | None = typer.Option(
-        None, "--filter", "-f", help="Filter messages based on complex strategies"
-    ),
-    output: pathlib.Path | None = typer.Option(
-        None, "--output", "-o", help="Write filtered messages to a file"
-    ),
-    only_content: bool = typer.Option(
-        False, "--only-content", help="Only display the literal message value"
     ),
     filters: list[str] = typer.Argument(
         default=(), help="Arbitrary filters to apply to messages"
@@ -45,33 +33,20 @@ def consume(
     TODO: Handle --output, some sort of io.writer style, default to sys.stdout
     TODO: Filter strategies, what kind of API should that be exposed as, string literal?
     TODO: This api is a horrible mess right now, hacking to make something functional,
+    TODO: Multi topics
     abstract it, scattered if tail blocks etc is unwieldy and will get worse as more
     functionality is added, perhaps a strategy that takes the config and returns a
     consumer, likewise for a producer and admin client.
     """
     cfg: Configuration = ctx.obj.get("config")
     ctx.obj["config"] = cfg
-    group_id = f"kafkaux-{uuid.uuid4()}"
-    consumer_overrides = {}
-
-    def fatal_cb(err):
-        # TODO: Exit on errors for now instantly, fatal or not.
-        raise typer.Exit(code=2)
-
-    if tail:
-        consumer_overrides = {
-            "auto.offset.reset": "earliest",  # do not play the offsets from the beginning of the stream (TODO: Revert to latest, testing for now)
-            "group.id": group_id,  # identify the consumer uniquely per run
-            "enable.auto.commit": False,  # do not commit offsets for the group to avoid potential side effects
-            "log_level": 5,  # only fatal/alert logging
-            "error_cb": fatal_cb,
-        }
-    cfg.librdkafka.update(**consumer_overrides)
-    consumer = confluent_kafka.Consumer(cfg.librdkafka)
-    consumer.subscribe([topic])
-    with KafkaService(consumer=consumer) as kafka_service:
-        if tail:
-            kafka_service.tail(filters)
+    c = KafkauxConsumer(
+        kconfig=cfg,
+        mode=ConsumerMode.TAIL,
+        topics=topics,
+        filters=None,
+    ) # TODO: Multiple topics
+    c.tail()
 
 
 @app.command()

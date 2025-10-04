@@ -4,9 +4,8 @@ import typing
 
 import pytest
 from confluent_kafka.admin import AdminClient
-from testcontainers.kafka import KafkaContainer
-
 from kafkaux.kafka.service import KafkaService
+from testcontainers.kafka import KafkaContainer
 
 # Avoid a bump to testcontainers itself causing the version of
 # kafka to change for tests, this should be explicitly controlled.
