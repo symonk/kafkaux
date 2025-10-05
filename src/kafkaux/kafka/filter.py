@@ -1,3 +1,4 @@
+import re
 import typing
 
 from .model import Event
@@ -12,7 +13,8 @@ def auto_register(f):
 
 
 @auto_register
-def key_was(expected: str, message: Event) -> bool:
+def key_matched(expected: str, message: Event) -> bool:
     """key_was marks messages where the key was an exact match to the user
     provided filter."""
-    return message.key == expected
+    pattern = re.compile(expected)
+    return pattern.fullmatch(message.key) is not None

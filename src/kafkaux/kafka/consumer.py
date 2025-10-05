@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 import uuid
 from enum import StrEnum
@@ -35,6 +37,12 @@ class KafkauxConsumer:
         # establish the consumer
         self.consumer = Consumer(self.kconfig.librdkafka)
         self.consumer.subscribe(self.topics)
+
+    def __enter__(self) -> KafkauxConsumer:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.consumer.close()
 
     @property
     def kafka_overrides(self) -> dict[str, typing.Union[str, bool]]:

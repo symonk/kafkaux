@@ -3,10 +3,11 @@ import subprocess
 import typing
 
 import pytest
-from confluent_kafka.admin import AdminClient
 from testcontainers.kafka import KafkaContainer
 
-from kafkaux.kafka.service import KafkaService
+from kafkaux.config import Configuration
+from kafkaux.kafka.consumer import ConsumerMode
+from kafkaux.kafka.consumer import KafkauxConsumer
 
 # Avoid a bump to testcontainers itself causing the version of
 # kafka to change for tests, this should be explicitly controlled.
@@ -50,15 +51,16 @@ def ensure_docker() -> None:
 
 
 @pytest.fixture
-def fx_kafka(
+def fx_kafka_consumer(
     ensure_docker: None, request: pytest.FixtureRequest
-) -> typing.Generator[KafkaService, None, None]:
-    """fx_kafka yields a new `kafkaux.KafkaService` that is wired into a function scoped
-    isolated kafka instance."""
+) -> typing.Generator[KafkauxConsumer, None, None]:
+    """fx_kafka_consumer yields a new KafkauxConsumer for testing."""
     with KafkaContainer(image=KAFKA_IMAGE).with_kraft() as kafka:
-        admin_client = AdminClient({"bootstrap.servers": kafka.get_bootstrap_server()})
-        with KafkaService(admin_client=admin_client) as service:
-            yield service
+        cfg = Configuration(
+            librdkafka={"bootstrap.servers": kafka.get_bootstrap_server()}
+        )
+        c = KafkauxConsumer(kconfig=cfg, topics=["my-topic"], mode=ConsumerMode.TAIL)
+        yield c
 
 
 @pytest.fixture()
