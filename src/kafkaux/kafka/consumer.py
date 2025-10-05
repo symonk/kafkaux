@@ -51,7 +51,7 @@ class KafkauxConsumer:
         consumer_group = f"kafkaux-{uuid.uuid4()}"
         return {
             "group.id": consumer_group,
-            "auto.offset.reset": "earliest",
+            "auto.offset.reset": "latest",
             "enable.auto.commit": False,
         }
 
@@ -74,10 +74,11 @@ class KafkauxConsumer:
                 continue
             reportable_message = Event.from_confluent_message(msg)
             if self.filters:
-                for f in self.filters:
-                    if FILTER_REGISTRY[f](
-                        "", reportable_message
+                for fkey, fvalue in self.filters.items():
+                    if FILTER_REGISTRY[fkey](
+                        fvalue, reportable_message
                     ):  # TODO: Bug but filters is getting rewritten.
                         print(reportable_message.model_dump_json(), flush=True)
-                        continue
-            print(reportable_message.model_dump_json(), flush=True)
+                    continue
+            else:
+                print(reportable_message.model_dump_json(), flush=True)

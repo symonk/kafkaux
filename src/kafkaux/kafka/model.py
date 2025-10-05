@@ -34,5 +34,6 @@ class Event(BaseModel):
             offset=message.offset(),
             key=message.key().decode("utf-8"),
             headers=message.headers(),
+            # TODO: The key might not actually be valid json, can be TEXT etc.
             value=json.loads(message.value().decode("utf-8")),
         )
