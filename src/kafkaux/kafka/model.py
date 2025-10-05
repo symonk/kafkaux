@@ -22,7 +22,7 @@ class Event(BaseModel):
     offset: int
     key: str
     headers: list[tuple[str, str]] | None = Field(default_factory=list)
-    value: dict[str, str] | None = Field(default_factory=dict)
+    value: str | None
 
     @classmethod
     def from_confluent_message(cls, message: Message) -> Event:
@@ -32,8 +32,30 @@ class Event(BaseModel):
             topic=message.topic(),
             partition=message.partition(),
             offset=message.offset(),
-            key=message.key().decode("utf-8"),
+            key=try_json_decode(message.key()),
             headers=message.headers(),
             # TODO: The key might not actually be valid json, can be TEXT etc.
-            value=json.loads(message.value().decode("utf-8")),
+            value=try_json_decode(message.value()),
         )
+
+
+# TODO: Maybe a key and value individual functions is preferred, definitely
+# TODO: different use cases there
+def try_json_decode(data_in: bytes) -> str | None:
+    """attempts to decode the kafka message initially as json
+    falling back to text.  Kafka supports multiple different
+    key formats, such as:
+
+    * Null
+    * JSON
+    * Text
+    * Binary (Base64)
+
+    # TODO: B64 keys need handled.
+    """
+    if data_in is None:
+        return None
+    try:
+        return json.loads(data_in.decode("utf-8"))
+    except json.decoder.JSONDecodeError:
+        return data_in.decode("utf-8")
